@@ -14,6 +14,10 @@ namespace H3QM.Models.Data
 
         public string NewIcon { get; }
 
+        public string SmallIcon { get; }
+
+        public string NewSmallIcon { get; }
+
         public byte[] OriginalPattern { get; }
 
         public byte[] OriginalMapEdPattern { get; }
@@ -22,7 +26,11 @@ namespace H3QM.Models.Data
 
         public byte[] ModifiedMapEdPattern { get; }
 
-        public HeroTemplate(string name, string newName, string icon, string newIcon, byte[] originalPattern, byte[] modifiedPattern, byte[] originalMapEdPattern, byte[] modifiedMapEdPattern)
+        public HeroTemplate(string name, string newName,
+            string icon, string newIcon,
+            string smallIcon, string newSmallIcon,
+            byte[] originalPattern, byte[] modifiedPattern,
+            byte[] originalMapEdPattern, byte[] modifiedMapEdPattern)
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
             if (string.IsNullOrWhiteSpace(Name)) throw new ArgumentNullException(nameof(name));
@@ -35,6 +43,12 @@ namespace H3QM.Models.Data
 
             NewIcon = newIcon ?? throw new ArgumentNullException(nameof(newIcon));
             if (string.IsNullOrWhiteSpace(NewIcon)) NewIcon = Icon;
+
+            SmallIcon = smallIcon ?? throw new ArgumentNullException(nameof(smallIcon));
+            if (string.IsNullOrWhiteSpace(SmallIcon)) throw new ArgumentNullException(nameof(smallIcon));
+
+            NewSmallIcon = newSmallIcon ?? throw new ArgumentNullException(nameof(newSmallIcon));
+            if (string.IsNullOrWhiteSpace(NewSmallIcon)) NewSmallIcon = SmallIcon;
 
             OriginalPattern = originalPattern ?? throw new ArgumentNullException(nameof(originalPattern));
             OriginalMapEdPattern = originalMapEdPattern ?? throw new ArgumentNullException(nameof(originalMapEdPattern));

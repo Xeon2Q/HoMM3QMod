@@ -24,7 +24,7 @@ namespace H3QM.Models.HoMM3
             _encoding = encoding;
             Position = position;
 
-            CopyBytes(name, _name);
+            CopyBytes(name, _name, true);
             CopyBytes(type, _type);
             CopyBytes(offset, _offset);
             CopyBytes(originalSize, _originalSize);
@@ -114,10 +114,12 @@ namespace H3QM.Models.HoMM3
 
         #region Private methods
 
-        private static void CopyBytes(byte[] from, byte[] to)
+        private static void CopyBytes(byte[] from, byte[] to, bool textData = false)
         {
-            var flen = from.Length;
-            for (var i = 0; i < to.Length; i++) to[i] = i < flen ? from[i] : (byte) 0;
+            Array.Clear(to, 0, to.Length);
+            var eof = textData ? Array.IndexOf(from, (byte)0) : from.Length;
+            if (eof < 0) eof = from.Length;
+            for (var i = 0; i < eof; i++) to[i] = from[i];
         }
 
         private bool ArraysAreSame(byte[] array1, byte[] array2)

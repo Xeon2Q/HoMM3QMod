@@ -9,6 +9,7 @@ namespace H3QM.Models.Data
         public static HeroTemplate Orrin { get; } = new HeroTemplate(
             "Orrin", "Brutallus",
             "HPL000KN.pcx", "HPL133Nc.pcx",
+            "HPS000KN.pcx", "HPS133Nc.pcx",
 
             // exe pattern
             new byte[]
@@ -72,6 +73,7 @@ namespace H3QM.Models.Data
         public static HeroTemplate SirMullich { get; } = new HeroTemplate(
             "Sir Mullich", "Behemoth",
             "HPL130Kn.pcx", "HPL135Wi.pcx",
+            "HPS130Kn.pcx", "HPS135Wi.pcx",
 
             // exe pattern
             new byte[]
@@ -123,6 +125,7 @@ namespace H3QM.Models.Data
         public static HeroTemplate Dessa { get; } = new HeroTemplate(
             "Dessa", "Anathema",
             "HPL106BM.pcx", "HPL000SH.pcx",
+            "HPS106BM.pcx", "HPS000SH.pcx",
 
             // exe pattern
             new byte[]

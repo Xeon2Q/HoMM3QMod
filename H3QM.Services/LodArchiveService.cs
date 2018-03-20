@@ -79,7 +79,7 @@ namespace H3QM.Services
             {
                 foreach (var file in files)
                 {
-                    WriteLodFileContent(stream, file);
+                    if (file != null) WriteLodFileContent(stream, file);
                 }
             }
         }
@@ -195,8 +195,10 @@ namespace H3QM.Services
 
             if (!file.IsChanged) return;
 
-            // write content
+            // update offset
             file.Offset = (uint) stream.Seek(0, SeekOrigin.End);
+
+            // write content
             var content = Encoding.GetBytes(file.CompressedContent);
             WriteBytes(stream, content);
 

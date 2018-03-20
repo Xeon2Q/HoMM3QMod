@@ -13,7 +13,12 @@ namespace H3QM.Services
     {
         #region C-tor & Private fields
 
-        private static readonly Encoding Encoding = Encoding.GetEncoding(1251);
+        private readonly Encoding _encoding;
+
+        public LodArchiveService(Encoding encoding)
+        {
+            _encoding = encoding ?? throw new ArgumentNullException(nameof(encoding));
+        }
 
         #endregion
 
@@ -60,7 +65,7 @@ namespace H3QM.Services
                     var file = GetLodFile(stream);
                     if (file == null) break;
 
-                    if (file.Name.Equals(fileName))
+                    if (file.Name.Equals(fileName, StringComparison.OrdinalIgnoreCase))
                     {
                         ReadLodFileContent(stream, file);
                         return file;
@@ -88,7 +93,7 @@ namespace H3QM.Services
         {
             var buffer = new byte[4096];
             var zc = new ZlibCodec(CompressionMode.Compress);
-            zc.InitializeDeflate(CompressionLevel.Default, 15, true);
+            zc.InitializeDeflate();
 
             zc.InputBuffer = data;
             zc.NextIn = 0;
@@ -157,7 +162,7 @@ namespace H3QM.Services
             return new LodArchive(archivePath, lodPrefix, type, filesCount, unknownBytes);
         }
 
-        private static LodFile GetLodFile(Stream stream)
+        private LodFile GetLodFile(Stream stream)
         {
             if (stream == null) throw new ArgumentNullException(nameof(stream));
 
@@ -171,7 +176,7 @@ namespace H3QM.Services
             var type = ReadBytes(stream, 4);
             var compressedSize = ReadBytes(stream, 4);
 
-            return new LodFile(Encoding, position, name, type, offset, originalSize, compressedSize);
+            return new LodFile(_encoding, position, name, type, offset, originalSize, compressedSize);
         }
 
         private static void ReadLodFileContent(Stream stream, LodFile file)
@@ -188,7 +193,7 @@ namespace H3QM.Services
             file.SetContent(originalContent, compressedContent);
         }
 
-        private static void WriteLodFileContent(Stream stream, LodFile file)
+        private void WriteLodFileContent(Stream stream, LodFile file)
         {
             if (stream == null) throw new ArgumentNullException(nameof(stream));
             if (file == null) throw new ArgumentNullException(nameof(file));
@@ -199,7 +204,7 @@ namespace H3QM.Services
             file.Offset = (uint) stream.Seek(0, SeekOrigin.End);
 
             // write content
-            var content = Encoding.GetBytes(file.CompressedContent);
+            var content = _encoding.GetBytes(file.CompressedContent);
             WriteBytes(stream, content);
 
             // write info

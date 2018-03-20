@@ -39,7 +39,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Data\CreatureTemplate.cs" />
     <Compile Include="Data\HeroTemplate.cs" />
+    <Compile Include="Data\KnownCreature.cs" />
     <Compile Include="Data\KnownHero.cs" />
     <Compile Include="Enums\HeroClassEnum.cs" />
     <Compile Include="Enums\HeroSexEnum.cs" />

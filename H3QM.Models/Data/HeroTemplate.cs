@@ -35,7 +35,7 @@ namespace H3QM.Models.Data
             Name = name ?? throw new ArgumentNullException(nameof(name));
             if (string.IsNullOrWhiteSpace(Name)) throw new ArgumentNullException(nameof(name));
 
-            NewName = newName ?? throw new ArgumentNullException(nameof(newName));
+            NewName = newName;
             if (string.IsNullOrWhiteSpace(NewName)) NewName = Name;
 
             Icon = icon ?? throw new ArgumentNullException(nameof(icon));

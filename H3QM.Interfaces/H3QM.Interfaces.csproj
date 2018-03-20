@@ -42,6 +42,7 @@
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\IChangeExeService.cs" />
+    <Compile Include="Services\ICreatureService.cs" />
     <Compile Include="Services\ILodArchiveService.cs" />
   </ItemGroup>
   <ItemGroup />

@@ -126,14 +126,14 @@ namespace H3QM.Services
             }
         }
 
-        #endregion
-
-        #region Private methods
- 
-        private static byte[] Decompress(byte[] data)
+        public byte[] Decompress(byte[] data)
         {
             return ZlibStream.UncompressBuffer(data);
         }
+
+        #endregion
+
+        #region Private methods
 
         private static byte[] ReadBytes(Stream stream, ulong byteCount)
         {
@@ -179,7 +179,7 @@ namespace H3QM.Services
             return new LodFile(_encoding, position, name, type, offset, originalSize, compressedSize);
         }
 
-        private static void ReadLodFileContent(Stream stream, LodFile file)
+        private void ReadLodFileContent(Stream stream, LodFile file)
         {
             if (stream == null) throw new ArgumentNullException(nameof(stream));
             if (file == null) throw new ArgumentNullException(nameof(file));

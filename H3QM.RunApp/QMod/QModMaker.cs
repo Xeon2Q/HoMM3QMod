@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using H3QM.Interfaces.Services;
 using H3QM.Models.Data;
 using H3QM.Models.Enums;
+using H3QM.RunApp.Properties;
 using H3QM.Services;
 
 namespace H3QM.RunApp.QMod
@@ -14,6 +16,10 @@ namespace H3QM.RunApp.QMod
         #region C-tor & Private fields
 
         private static Encoding Encoding { get; } = Encoding.GetEncoding(1251);
+
+        private static IChangeExeService ChangeExeService { get; } = new ChangeExeService();
+
+        private static ILodArchiveService LodArchiveService { get; } = new LodArchiveService(Encoding);
 
         #endregion
 
@@ -40,6 +46,15 @@ namespace H3QM.RunApp.QMod
 
             // update creature
             GetCreatureFiles(gameFolder).ToList().ForEach(UpdateCreatures);
+
+            // update movement arrows
+            GetMovementArrowsFiles(gameFolder).ToList().ForEach(UpdateMovementArrows);
+
+            Console.Write($@"Game [""");
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.Write($@"{gameFolder}");
+            Console.ResetColor();
+            Console.Write($@"""] has been updated!");
         }
 
         #endregion
@@ -51,15 +66,13 @@ namespace H3QM.RunApp.QMod
             if (!File.Exists(exeFile)) return;
 
             var file = Path.GetFileName(exeFile);
-            var service = new ChangeExeService();
-
             var func = new Func<HeroTemplate, bool>(hero => {
                 Console.Write($@"[{file}] Updating ""{hero.Name}"": ");
 
-                var result = service.ChangeHero(exeFile, MarkerEnum.GameMarker, hero.OriginalPattern, hero.ModifiedPattern);
+                var result = ChangeExeService.ChangeHero(exeFile, MarkerEnum.GameMarker, hero.OriginalPattern, hero.ModifiedPattern);
 
                 Console.ForegroundColor = result ? ConsoleColor.Green : ConsoleColor.Red;
-                Console.WriteLine(result ? "OK!" : "NOT CHANGED");
+                Console.WriteLine(result ? @"OK!" : @"NOT CHANGED");
                 Console.ResetColor();
                 return result;
             });
@@ -76,15 +89,14 @@ namespace H3QM.RunApp.QMod
             if (!File.Exists(exeFile)) return;
 
             var file = Path.GetFileName(exeFile);
-            var service = new ChangeExeService();
 
             var func = new Func<HeroTemplate, bool>(hero => {
                 Console.Write($@"[{file}] Updating ""{hero.Name}"": ");
 
-                var result = service.ChangeHero(exeFile, MarkerEnum.MapEditorMarker, hero.OriginalMapEdPattern, hero.ModifiedMapEdPattern);
+                var result = ChangeExeService.ChangeHero(exeFile, MarkerEnum.MapEditorMarker, hero.OriginalMapEdPattern, hero.ModifiedMapEdPattern);
 
                 Console.ForegroundColor = result ? ConsoleColor.Green : ConsoleColor.Red;
-                Console.WriteLine(result ? "OK!" : "NOT CHANGED");
+                Console.WriteLine(result ? @"OK!" : @"NOT CHANGED");
                 Console.ResetColor();
                 return result;
             });
@@ -103,13 +115,12 @@ namespace H3QM.RunApp.QMod
             if (string.IsNullOrWhiteSpace(mainStorageFile)) mainStorageFile = lodFile;
 
             var file = Path.GetFileName(lodFile);
-            var service = new LodArchiveService(Encoding);
 
             var action = new Func<HeroTemplate, bool>(hero => {
-                var largeIcon = service.GetFile(lodFile, hero.Icon);
-                var largeIconNew = service.GetFile(mainStorageFile, hero.NewIcon);
-                var smallIcon = service.GetFile(lodFile, hero.SmallIcon);
-                var smallIconNew = service.GetFile(mainStorageFile, hero.NewSmallIcon);
+                var largeIcon = LodArchiveService.GetFile(lodFile, hero.Icon);
+                var largeIconNew = LodArchiveService.GetFile(mainStorageFile, hero.NewIcon);
+                var smallIcon = LodArchiveService.GetFile(lodFile, hero.SmallIcon);
+                var smallIconNew = LodArchiveService.GetFile(mainStorageFile, hero.NewSmallIcon);
 
                 if (largeIcon != null && largeIconNew != null)
                 {
@@ -131,10 +142,10 @@ namespace H3QM.RunApp.QMod
                 if (largeIcon == null && smallIcon == null) return false;
 
                 Console.Write($@"[{file}] Updating portraits ""{hero.Name}"": ");
-                service.SaveFiles(lodFile, largeIcon, smallIcon);
+                LodArchiveService.SaveFiles(lodFile, largeIcon, smallIcon);
 
                 Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine("OK!");
+                Console.WriteLine(@"OK!");
                 Console.ResetColor();
                 return true;
             });
@@ -150,9 +161,8 @@ namespace H3QM.RunApp.QMod
         {
             if (!File.Exists(lodFile)) return;
 
-            var lodArchiveService = new LodArchiveService(Encoding);
-            var biosFile = lodArchiveService.GetFile(lodFile, @"HeroBios.txt");
-            var nameFile = lodArchiveService.GetFile(lodFile, @"HOTRAITS.TXT");
+            var biosFile = LodArchiveService.GetFile(lodFile, @"HeroBios.txt");
+            var nameFile = LodArchiveService.GetFile(lodFile, @"HOTRAITS.TXT");
             if (biosFile == null && nameFile == null) return;
 
             var file = Path.GetFileName(lodFile);
@@ -168,28 +178,28 @@ namespace H3QM.RunApp.QMod
                 {
                     nameString = nameString.Replace(hero.Name, hero.NewName);
                     Console.ForegroundColor = ConsoleColor.Green;
-                    Console.Write("OK!");
+                    Console.Write(@"OK!");
                 }
                 else
                 {
                     Console.ForegroundColor = ConsoleColor.Red;
-                    Console.Write("NOT CHANGED");
+                    Console.Write(@"NOT CHANGED");
                 }
 
                 Console.ResetColor();
-                Console.Write("/");
+                Console.Write(@"/");
 
                 var hasBios = biosString?.Contains(hero.Name) ?? false;
                 if (hasBios)
                 {
                     biosString = biosString.Replace(hero.Name, hero.NewName);
                     Console.ForegroundColor = ConsoleColor.Green;
-                    Console.Write("OK!");
+                    Console.Write(@"OK!");
                 }
                 else
                 {
                     Console.ForegroundColor = ConsoleColor.Red;
-                    Console.Write("NOT CHANGED");
+                    Console.Write(@"NOT CHANGED");
                 }
 
                 Console.ResetColor();
@@ -200,9 +210,9 @@ namespace H3QM.RunApp.QMod
             action(KnownHero.SirMullich);
             action(KnownHero.Dessa);
 
-            nameFile?.SetContent(Encoding.GetBytes(nameString), lodArchiveService.Compress(Encoding.GetBytes(nameString)));
-            biosFile?.SetContent(Encoding.GetBytes(biosString), lodArchiveService.Compress(Encoding.GetBytes(biosString)));
-            lodArchiveService.SaveFiles(lodFile, nameFile, biosFile);
+            nameFile?.SetContent(Encoding.GetBytes(nameString), LodArchiveService.Compress(Encoding.GetBytes(nameString)));
+            biosFile?.SetContent(Encoding.GetBytes(biosString), LodArchiveService.Compress(Encoding.GetBytes(biosString)));
+            LodArchiveService.SaveFiles(lodFile, nameFile, biosFile);
 
             Console.WriteLine();
         }
@@ -211,8 +221,7 @@ namespace H3QM.RunApp.QMod
         {
             if (!File.Exists(lodFile)) return;
 
-            var lodArchiveService = new LodArchiveService(Encoding);
-            var creatureFile = lodArchiveService.GetFile(lodFile, @"CRTRAITS.TXT");
+            var creatureFile = LodArchiveService.GetFile(lodFile, @"CRTRAITS.TXT");
             if (creatureFile == null) return;
 
             var file = Path.GetFileName(lodFile);
@@ -226,7 +235,7 @@ namespace H3QM.RunApp.QMod
                 if (result > 0) Console.ForegroundColor = ConsoleColor.Green;
                 else if (result == 0) Console.ForegroundColor = ConsoleColor.Yellow;
                 else Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine(result >= 0 ? "OK!" : "NOT CHANGED");
+                Console.WriteLine(result >= 0 ? @"OK!" : @"NOT CHANGED");
                 Console.ResetColor();
             });
 
@@ -238,8 +247,8 @@ namespace H3QM.RunApp.QMod
             action(KnownCreature.WalkingDead);
             action(KnownCreature.Zombie);
 
-            creatureFile.SetContent(Encoding.GetBytes(originalContentString), lodArchiveService.Compress(Encoding.GetBytes(originalContentString)));
-            lodArchiveService.SaveFiles(lodFile, creatureFile);
+            creatureFile.SetContent(Encoding.GetBytes(originalContentString), LodArchiveService.Compress(Encoding.GetBytes(originalContentString)));
+            LodArchiveService.SaveFiles(lodFile, creatureFile);
 
             Console.WriteLine();
         }
@@ -249,37 +258,19 @@ namespace H3QM.RunApp.QMod
             if (!File.Exists(lodFile)) return;
 
             var file = Path.GetFileName(lodFile);
-            var service = new LodArchiveService(Encoding);
+            var adagOld = LodArchiveService.GetFile(lodFile, @"ADAG.DEF");
+            if (adagOld == null) return;
 
-            var action = new Func<HeroTemplate, bool>(hero => {
-                var largeIcon = service.GetFile(lodFile, hero.Icon);
-                var largeIconNew = service.GetFile("", hero.NewIcon);
+            var adagNew = Encoding.GetBytes(Resources.ADAG);
+            adagOld.SetContent(LodArchiveService.Decompress(adagNew), adagNew);
+            LodArchiveService.SaveFiles(lodFile, adagOld);
 
-                if (largeIcon != null && largeIconNew != null)
-                {
-                    largeIcon.SetContent(largeIconNew.GetOriginalContentBytes(), largeIconNew.GetCompressedContentBytes());
-                }
-                else
-                {
-                    largeIcon = null;
-                }
+            Console.Write($@"[{file}] Updating movement arrows: ");
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine(@"OK!");
+            Console.ResetColor();
 
-                if (largeIcon == null) return false;
-
-                Console.Write($@"[{file}] Updating movement arrows: ");
-                service.SaveFiles(lodFile, largeIcon);
-
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine("OK!");
-                Console.ResetColor();
-                return true;
-            });
-
-            var a1 = action(KnownHero.Orrin);
-            a1 = action(KnownHero.SirMullich) || a1;
-            a1 = action(KnownHero.Dessa) || a1;
-
-            if (a1) Console.WriteLine();
+            Console.WriteLine();
         }
 
         #endregion

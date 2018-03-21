@@ -1,29 +1,25 @@
 ﻿using System;
-using System.Globalization;
-using System.IO;
-using System.Text;
-using H3QM.RunApp.Properties;
 using H3QM.RunApp.QMod;
-using H3QM.Services;
+using Microsoft.Win32;
 
 namespace H3QM.RunApp
 {
     class Program
     {
-        static void Main(string[] args)
+        static void Main()
         {
-            //QModMaker.ModGame(@"X:\Zoid");
-            //QModMaker.ModGame(@"X:\Games\HoMM3X\");
+            QModMaker.ModGame(FindGameFolder());
 
-            var dd = new LodArchiveService(Encoding.GetEncoding(1251));
-            var adag = dd.GetFile(@"X:\Games\HoMM3X\Data\HotA.lod", "adag.def");
-
-            var adagRes = Resources.ResourceManager..GetObject("ADAG");
-
-            File.WriteAllBytes(@"X:\ADAG.DEF", adag.GetCompressedContentBytes());
-
-            Console.WriteLine("DONE!");
             Console.ReadLine();
+        }
+
+        private static string FindGameFolder()
+        {
+            var registryKey = Registry.ClassesRoot.OpenSubKey(@"VirtualStore\MACHINE\SOFTWARE\WOW6432Node\New World Computing\Heroes of Might and Magic® III\1.0");
+            var path = registryKey?.GetValue(@"AppPath")?.ToString();
+            if (!string.IsNullOrEmpty(path)) return path;
+
+            return Environment.CurrentDirectory;
         }
     }
 }

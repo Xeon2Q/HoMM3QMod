@@ -12,5 +12,7 @@ namespace H3QM.Interfaces.Services
         void SaveFiles(string archivePath, params LodFile[] files);
 
         byte[] Compress(byte[] data);
+
+        byte[] Decompress(byte[] data);
     }
 }

@@ -50,6 +50,10 @@ namespace H3QM.RunApp.QMod
             // update movement arrows
             GetMovementArrowsFiles(gameFolder).ToList().ForEach(UpdateMovementArrows);
 
+            // optimize archive
+            GetLodArchivesToOptimize(gameFolder).ToList().ForEach(OptimizeLodArchive);
+            Console.WriteLine();
+
             Console.Write($@"Game [""");
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.Write($@"{gameFolder}");
@@ -229,7 +233,7 @@ namespace H3QM.RunApp.QMod
             var originalContentString = creatureFile.OriginalContent;
 
             var action = new Action<CreatureTemplate>(creature => {
-                Console.Write($@"[{file}] Updating creaute ""{creature.Name}"": ");
+                Console.Write($@"[{file}] Updating creature ""{creature.Name}"": ");
                 var result = creatureService.Update(creature, ref originalContentString);
 
                 if (result > 0) Console.ForegroundColor = ConsoleColor.Green;
@@ -271,6 +275,16 @@ namespace H3QM.RunApp.QMod
             Console.ResetColor();
 
             Console.WriteLine();
+        }
+
+        private static void OptimizeLodArchive(string lodFile)
+        {
+            if (!File.Exists(lodFile)) return;
+
+            LodArchiveService.OptimizeLodArchive(lodFile);
+
+            var file = Path.GetFileName(lodFile)?.ToUpper();
+            Console.WriteLine($@"File [{file}] optimized!");
         }
 
         #endregion
@@ -371,6 +385,23 @@ namespace H3QM.RunApp.QMod
 
             action("H3sprite.lod");
             action("HotA.lod");
+
+            return files.Distinct().AsEnumerable();
+        }
+
+        private static IEnumerable<string> GetLodArchivesToOptimize(string folder)
+        {
+            var files = new List<string>();
+
+            var action = new Action<string>(fileName => {
+                var path = Path.Combine(folder, "Data", fileName);
+                if (File.Exists(path)) files.Add(path);
+            });
+
+            action("H3bitmap.lod");
+            action("H3sprite.lod");
+            action("HotA.lod");
+            action("HotA_lng.lod");
 
             return files.Distinct().AsEnumerable();
         }

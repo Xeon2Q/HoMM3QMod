@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
@@ -37,7 +38,7 @@ namespace H3QM.Models.HoMM3
 
         public bool IsChanged { get; private set; }
 
-        public long Position { get; }
+        public long Position { get; set; }
 
         public string Name
         {
@@ -91,11 +92,6 @@ namespace H3QM.Models.HoMM3
 
         public byte[] GetCompressedContentBytes() => _compressedContent;
 
-        public void SetContent(string originalContent, string compressedContent)
-        {
-            SetContent(_encoding.GetBytes(originalContent), _encoding.GetBytes(compressedContent));
-        }
-
         public void SetContent(byte[] originalContent, byte[] compressedContent)
         {
             IsChanged = _compressedContent.Length > 0 && (!ArraysAreSame(_originalContent, originalContent) || !ArraysAreSame(compressedContent, _compressedContent));
@@ -108,6 +104,22 @@ namespace H3QM.Models.HoMM3
 
             // special case
             if (ArraysAreSame(originalContent, compressedContent)) CompressedSize = 0;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (!(obj is LodFile file)) return false;
+            if (!Name.Equals(file.Name, StringComparison.OrdinalIgnoreCase)) return false;
+
+            if (Offset == file.Offset && CompressedSize == file.CompressedSize && OriginalSize == file.OriginalSize) return true;
+            if (ArraysAreSame(_compressedContent, file._compressedContent)) return true;
+
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return $"{Name}|{Offset}|{CompressedSize}|{OriginalSize}".GetHashCode();
         }
 
         #endregion

@@ -131,6 +131,75 @@ namespace H3QM.Services
             return ZlibStream.UncompressBuffer(data);
         }
 
+        public bool OptimizeLodArchive(string archivePath)
+        {
+            using (var stream = File.Open(archivePath, FileMode.Open, FileAccess.ReadWrite, FileShare.Read))
+            {
+                stream.Seek(0, SeekOrigin.Begin);
+                var info = GetArchiveInfo(archivePath, stream);
+                var contentPosition = stream.Position;
+
+                // load files info
+                var files = new List<LodFile>();
+                while (true)
+                {
+                    var file = GetLodFile(stream);
+                    if (file == null) break;
+                    
+                    files.Add(file);
+                }
+                // load files content
+                files.ForEach(q => ReadLodFileContent(stream, q));
+
+                // truncate the files
+                stream.Seek(0, SeekOrigin.Begin);
+                stream.SetLength(contentPosition);
+
+                // delete duplicates
+                files = files.Where(q => q != null).Distinct().ToList();
+
+                // write files info
+                stream.Seek(0, SeekOrigin.End);
+                files.ForEach(q =>
+                {
+                    q.Position = stream.Position;
+
+                    WriteBytes(stream, q.GetNameBytes());
+                    WriteBytes(stream, q.GetOffsetBytes());
+                    WriteBytes(stream, q.GetOriginalSizeBytes());
+                    WriteBytes(stream, q.GetTypeBytes());
+                    WriteBytes(stream, q.GetCompressedSizeBytes());
+                });
+                
+                // write 128 bytes zero delimiter
+                WriteBytes(stream, new byte[128]);
+
+                // write files content
+                files.ForEach(q =>
+                {
+                    q.Offset = (uint) stream.Position;
+
+                    WriteBytes(stream, q.GetCompressedContentBytes());
+                });
+
+                // update offset info
+                files.ForEach(q =>
+                {
+                    stream.Seek(q.Position + q.GetNameBytes().Length, SeekOrigin.Begin);
+
+                    WriteBytes(stream, q.GetOffsetBytes());
+                });
+
+                // update files count
+                stream.Seek(0, SeekOrigin.Begin);
+                var filesCount = new byte[4];
+                BitConverter.GetBytes(files.Count).CopyTo(filesCount, 0);
+                WriteBytes(stream, filesCount, 8);
+            }
+
+            return true;
+        }
+
         #endregion
 
         #region Private methods
@@ -193,19 +262,18 @@ namespace H3QM.Services
             file.SetContent(originalContent, compressedContent);
         }
 
-        private void WriteLodFileContent(Stream stream, LodFile file)
+        private void WriteLodFileContent(Stream stream, LodFile file, bool forceSave = false)
         {
             if (stream == null) throw new ArgumentNullException(nameof(stream));
             if (file == null) throw new ArgumentNullException(nameof(file));
 
-            if (!file.IsChanged) return;
+            if (!file.IsChanged && !forceSave) return;
 
             // update offset
             file.Offset = (uint) stream.Seek(0, SeekOrigin.End);
 
             // write content
-            var content = _encoding.GetBytes(file.CompressedContent);
-            WriteBytes(stream, content);
+            WriteBytes(stream, file.GetCompressedContentBytes());
 
             // write info
             stream.Seek(file.Position, SeekOrigin.Begin);

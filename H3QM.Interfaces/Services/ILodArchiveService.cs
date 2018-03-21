@@ -14,5 +14,7 @@ namespace H3QM.Interfaces.Services
         byte[] Compress(byte[] data);
 
         byte[] Decompress(byte[] data);
+
+        bool OptimizeLodArchive(string archivePath);
     }
 }
